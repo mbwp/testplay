@@ -124,38 +124,40 @@ public class BasicTest extends UnitTest {
 	
 	@Test
 	public void fullTest() {
-	    Fixtures.loadModels("data.yml");
+	    Fixtures.loadModels("blog_user.yml");
+	    Fixtures.loadModels("post.yml");
+	    Fixtures.loadModels("comment.yml");
 	 
 	    // Count things
 	    assertEquals(2, User.count());
-	    assertEquals(3, Post.count());
-	    assertEquals(3, Comment.count());
+	    assertEquals(2, Post.count());
+	    assertEquals(2, Comment.count());
 	 
 	    // Try to connect as users
-	    assertNotNull(User.connect("bob@gmail.com", "secret"));
-	    assertNotNull(User.connect("jeff@gmail.com", "secret"));
-	    assertNull(User.connect("jeff@gmail.com", "badpassword"));
-	    assertNull(User.connect("tom@gmail.com", "secret"));
+	    assertNotNull(User.connect("email", "password"));
+	    assertNotNull(User.connect("hogehoge", "pw"));
+	    assertNull(User.connect("email", "pasword"));
+	    assertNull(User.connect("tom@gmail.com", "password"));
 	 
 	    // Find all of Bob's posts
-	    List<Post> bobPosts = Post.find("author.email", "bob@gmail.com").fetch();
-	    assertEquals(2, bobPosts.size());
+	    List<Post> bobPosts = Post.find("author.email", "hogehoge").fetch();
+	    assertEquals(1, bobPosts.size());
 	 
 	    // Find all comments related to Bob's posts
-	    List<Comment> bobComments = Comment.find("post.author.email", "bob@gmail.com").fetch();
-	    assertEquals(3, bobComments.size());
+	    List<Comment> bobComments = Comment.find("post.author.email", "hogehoge").fetch();
+	    assertEquals(1, bobComments.size());
 	 
 	    // Find the most recent post
 	    Post frontPost = Post.find("order by postedAt desc").first();
 	    assertNotNull(frontPost);
-	    assertEquals("About the model layer", frontPost.title);
+	    assertEquals("title", frontPost.title);
 	 
 	    // Check that this post has two comments
-	    assertEquals(2, frontPost.comments.size());
+	    assertEquals(1, frontPost.comments.size());
 	 
 	    // Post a new comment
 	    frontPost.addComment("Jim", "Hello guys");
-	    assertEquals(3, frontPost.comments.size());
-	    assertEquals(4, Comment.count());
+	    assertEquals(2, frontPost.comments.size());
+	    assertEquals(3, Comment.count());
 	}
 }

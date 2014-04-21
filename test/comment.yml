@@ -1,0 +1,14 @@
+# Created by db2yml.
+
+Comment(comment0):
+    content:    content
+    postedat:    2014-04-21 00:00:00
+    author:    author
+    post_id:    1
+
+Comment(comment1):
+    content:    con
+    postedat:    2014-04-22 00:00:00
+    author:    aut
+    post_id:    2
+

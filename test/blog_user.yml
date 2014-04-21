@@ -1,0 +1,14 @@
+# Created by db2yml.
+
+User(blog_user0):
+    email:    hogehoge
+    password:    pw
+    isadmin:    false
+    fullname:    fn
+
+User(blog_user1):
+    email:    email
+    password:    password
+    isadmin:    true
+    fullname:    fullname
+

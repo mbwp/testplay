@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Table;
+
 import play.mvc.Controller;
 import play.test.Fixtures;
 
@@ -140,7 +142,19 @@ public class db2yml extends Controller {
                   String field = rsmd.getColumnName(i);
                   //フィールド名に対するデータ
                   String getdata = rs.getString(field);
-                  if (getdata == null) { getdata = ""; }
+                  // Type
+                  String type = rsmd.getColumnTypeName(i);
+                  if (getdata == null) { 
+                      getdata = ""; 
+                  } else {
+                      if (type.equals("bool")) {
+                          if ( getdata.equals("t") ) {
+                              getdata = "true";
+                          } else if ( getdata.equals("f") ) {
+                              getdata = "false";
+                          }
+                      }
+                  }
                   //データ格納(フィールド名, データ)
                   hdata.put(field, getdata);
                }
@@ -164,7 +178,8 @@ public class db2yml extends Controller {
         String ymlStr = "";
         //格納したデータをすべて表示する
         for (int i = 0; i < data.size(); i++) {
-            ymlStr += table + "(" + table + i + "):\n";
+            // modelに「@Table(name="blog_user")」のように記載されているものに関しては対応していない。
+            ymlStr += getFirstCharUpper(table) + "(" + table + i + "):\n";
             System.out.println("---------- " + (i+1) + "件目データ Start ----------");
             for ( String key : data.get(i).keySet() ) {
                 if ( ! EXCLUSIONKEY.contains(key) ) {
@@ -178,6 +193,10 @@ public class db2yml extends Controller {
         }
         writeYml(table, ymlStr);
         System.out.println("---------- outputYml End ----------");
+    }
+    
+    private static String getFirstCharUpper(String table) throws IOException {
+        return table.substring(0, 1).toUpperCase() + table.substring(1).toLowerCase();
     }
     
     private static void writeYml(String table, String outputStr) throws IOException {
