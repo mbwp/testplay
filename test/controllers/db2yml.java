@@ -29,9 +29,9 @@ public class db2yml extends Controller {
         render();
     }
     
-    public static void download()
+    public static void output()
     {
-        System.out.println("【download Start】");
+        System.out.println("【output Start】");
 
         // 使用変数
         List<String> tableList = new ArrayList();
@@ -56,16 +56,16 @@ public class db2yml extends Controller {
                 System.out.println("getValueList Start");
                 valueList = getValueList ( "SELECT * FROM " + table + ";" );
                 System.out.println("getValueList END");
-                // TODO:yml形式で出力
+                // yml形式で出力
                 outputYml ( table, valueList );
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            System.out.println("【download End】");
+            System.out.println("【output End】");
         }
         
-        String txt = "ダウンロードいたしました";
+        String txt = "出力いたしました";
         render("db2yml/index.html", txt);
     }
     
