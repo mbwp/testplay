@@ -140,11 +140,11 @@ public class BasicTest extends UnitTest {
 	    assertNull(User.connect("tom@gmail.com", "password"));
 	 
 	    // Find all of Bob's posts
-	    List<Post> bobPosts = Post.find("author.email", "hogehoge").fetch();
+	    List<Post> bobPosts = Post.find("title", "title").fetch();
 	    assertEquals(1, bobPosts.size());
 	 
 	    // Find all comments related to Bob's posts
-	    List<Comment> bobComments = Comment.find("post.author.email", "hogehoge").fetch();
+	    List<Comment> bobComments = Comment.find("author", "author").fetch();
 	    assertEquals(1, bobComments.size());
 	 
 	    // Find the most recent post
@@ -153,11 +153,11 @@ public class BasicTest extends UnitTest {
 	    assertEquals("title", frontPost.title);
 	 
 	    // Check that this post has two comments
-	    assertEquals(1, frontPost.comments.size());
+	    assertEquals(0, frontPost.comments.size());
 	 
 	    // Post a new comment
 	    frontPost.addComment("Jim", "Hello guys");
-	    assertEquals(2, frontPost.comments.size());
+	    assertEquals(1, frontPost.comments.size());
 	    assertEquals(3, Comment.count());
 	}
 }
