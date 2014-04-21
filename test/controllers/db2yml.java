@@ -1,6 +1,8 @@
 package controllers;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -8,9 +10,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +21,10 @@ import play.test.Fixtures;
 
 public class db2yml extends Controller {
 
+    private final static String OUTPUTPATH = "test";
+    
+    private final static List<String> EXCLUSIONKEY= Arrays.asList("id", "hogehoge");
+    
     public static void index() {
         render();
     }
@@ -29,7 +35,7 @@ public class db2yml extends Controller {
 
         // 使用変数
         List<String> tableList = new ArrayList();
-        ArrayList<Hashtable<String,String>> valueList = new ArrayList();
+        ArrayList<HashMap<String,String>> valueList = new ArrayList();
 
         // DBコネクション取得
         // DB一覧取得
@@ -50,8 +56,8 @@ public class db2yml extends Controller {
                 System.out.println("getValueList Start");
                 valueList = getValueList ( "SELECT * FROM " + table + ";" );
                 System.out.println("getValueList END");
-                // TODO:ysml形式で出力
-                outputYml ( valueList );
+                // TODO:yml形式で出力
+                outputYml ( table, valueList );
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,7 +105,7 @@ public class db2yml extends Controller {
         }
     }
 
-    private static ArrayList<Hashtable<String,String>> getValueList (String sql) throws Exception {
+    private static ArrayList<HashMap<String,String>> getValueList (String sql) throws Exception {
 //        System.out.println("sql :" + sql);
         Connection conn = null;
         Statement stmt = null;
@@ -123,13 +129,12 @@ public class db2yml extends Controller {
             //フィールド名取得
             ResultSetMetaData rsmd= rs.getMetaData();
             //データ格納
-            ArrayList<Hashtable<String, String>> list
-               = new ArrayList<Hashtable<String, String>>();
+            ArrayList<HashMap<String, String>> list
+               = new ArrayList<HashMap<String, String>>();
 
             while(rs.next()){
                //1件分のデータ(連想配列)
-               Hashtable<String, String> hdata
-                  = new Hashtable<String, String>();
+               HashMap<String, String> hdata = new HashMap<String, String>();
                for (int i = 1; i <= rsmd.getColumnCount(); i++) {
                   //フィールド名
                   String field = rsmd.getColumnName(i);
@@ -153,23 +158,37 @@ public class db2yml extends Controller {
         }
     }
 
-    private static void outputYml (ArrayList<Hashtable<String, String>> data) throws Exception {
+    private static void outputYml ( String table, ArrayList<HashMap<String, String>> data ) throws Exception {
         System.out.println("---------- outputYml Start ----------");
+        // 出力する文字列
+        String ymlStr = "";
         //格納したデータをすべて表示する
         for (int i = 0; i < data.size(); i++) {
-           //データi件目のフィールド名リストを取得
-           Enumeration<String> keyList = data.get(i).keys();
-           System.out.println("---------- " + (i+1) + "件目データ ----------");
-           while(keyList.hasMoreElements()) {
-              //フィールド名取得
-              String key = (String)keyList.nextElement();
-              //データ出力
-              System.out.println(key + ":" + data.get(i).get(key));
-           }
+            ymlStr += table + "(" + table + i + "):\n";
+            System.out.println("---------- " + (i+1) + "件目データ Start ----------");
+            for ( String key : data.get(i).keySet() ) {
+                if ( ! EXCLUSIONKEY.contains(key) ) {
+                    ymlStr += "    " + key + ":    " + data.get(i).get(key) + "\n";
+                    //データ出力
+                    System.out.println(key + ":" + data.get(i).get(key));
+                }
+            }
+            ymlStr += "\n";
+            System.out.println("---------- " + (i+1) + "件目データ End ----------");
         }
+        writeYml(table, ymlStr);
         System.out.println("---------- outputYml End ----------");
     }
     
+    private static void writeYml(String table, String outputStr) throws IOException {
+        File file = new File(OUTPUTPATH + "/" + table + ".yml");
+        FileOutputStream fop = new FileOutputStream(file);
+        fop.write("# Created by db2yml.\n\n".getBytes());
+        System.out.println("outputStr : " + outputStr);
+        fop.write(outputStr.getBytes());
+        fop.flush();
+        fop.close();
+    }
 //    private static List<String> getColumnList (String sql) throws Exception {
 ////        System.out.println("sql :" + sql);
 //        Connection conn = null;
