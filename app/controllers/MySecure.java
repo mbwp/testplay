@@ -8,51 +8,61 @@ package controllers;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+
+import play.Play;
 import play.libs.Crypto;
 import play.mvc.Before;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.utils.Java;
 
-import com.google.gson.Gson;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Message;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class MySecure extends Controller {
-	public class ReqeustData {
-	    public String pfmToken;
-	}
-	public class ReturnData {
-		public boolean status;
-	    public String token;
-	}
-
     @Before(unless={"login", "authenticate", "logout"})
     static void checkAccess(String body) throws Throwable {
-    	ReturnData resData = null;
-    	// body にTokenがあるか確認
-    	ReqeustData reqData = new Gson().fromJson(body, ReqeustData.class);
-    	
-    	// 認証基盤にTOKEN連携(TOKENが存在し認証基盤もOKであれば、何も行わない)
-    	if ( reqData != null && !"".equals(reqData.pfmToken) ) 
-    	{
-    		// 存在する場合、認証基盤に問い合わせ
-    		resData = (ReturnData)Security.invoke("authenticate", new Gson().toJson(reqData));
-    		if ( resData != null && resData.status != false ) {
-        		// 認証基板OK
-    		} else {
-        		// 認証基盤NG
-        		renderJSON(resData);
-    		}
-    	}
-    	else
-    	{
-    		// 存在しない場合、認証失敗のJsonを返却
-    		resData = new MySecure().new ReturnData();
-    		resData.status = false;
-    		resData.token = "";
-    		renderJSON(resData);
-    	}
+        JSONRPC2Request reqData = null;
+        JSONRPC2Response respData = null;
+        // confのmysecure.confirmの値がtrueの場合のみチェックを行う。
+        if ( "true".equals(Play.configuration.get("mysecure.confirm")) )
+        {
+            // body にTokenがあるか確認
+            try {
+                reqData = JSONRPC2Request.parse(body);
+            } catch (JSONRPC2ParseException e) {
+                System.out.println(e.getMessage());
+                // Handle exception...
+            }
+            
+            // 認証基盤にTOKEN連携(TOKENが存在し認証基盤もOKであれば、何も行わない)
+            if ( reqData != null && !"".equals(reqData.getNamedParams().get("pfmToken")) ) 
+            {
+                // 存在する場合、認証基盤に問い合わせ
+                // localhost の場合、TimeOutExceptionでエラーとなってしまうため、別のサーバとしてPort9001で立ち上げ動くようにする。
+                String checkUrl = Play.configuration.getProperty("mysecure.check.url", "http://localhost:9001/AuthenticationStub/login");
+                respData = (JSONRPC2Response)Security.invoke("checkToken", checkUrl, reqData);
+            	JSONObject obj = (JSONObject)respData.getResult();
+            	boolean status = ((Boolean)obj.get("status")).booleanValue();
+                if ( respData != null && respData.indicatesSuccess() && status ) {
+                    // 認証基板OK
+                } else {
+                    // TODO: 認証基盤NG
+                    respData = new JSONRPC2Response("token check error",reqData.getID());
+                    renderJSON(respData.toJSONString());
+                }
+            }
+            else
+            {
+                // TODO: 存在しない場合、認証失敗のJsonを返却
+                respData = new JSONRPC2Response("token check error",reqData.getID());
+                renderJSON(respData.toJSONString());
+            }
+        }
     }
 
     // ~~~ Login
@@ -89,17 +99,27 @@ public class MySecure extends Controller {
     }
     
     public static void authenticate(String body) throws Throwable {
+        JSONRPC2Request reqData = null;
+        try {
+            reqData  = JSONRPC2Request.parse(body);
+        } catch (JSONRPC2ParseException e) {
+            System.out.println(e.getMessage());
+            // Handle exception...
+        }
+
         // TODO: Check tokens
 
-    	// 認証連携
-    	ReturnData resData = (ReturnData)Security.invoke("authenticate", new Gson().toJson(body));
-    	String retJsonString = new Gson().toJson(resData);
+        // 認証連携
+        // localhost の場合、TimeOutExceptionでエラーとなってしまうため、別のサーバとしてPort9001で立ち上げ動くようにする。
+        String authorizeUrl = Play.configuration.getProperty("mysecure.authenticate.url", "http://localhost:9001/AuthenticationStub/login");
+        JSONRPC2Response resData = (JSONRPC2Response)Security.invoke("authenticate", authorizeUrl, reqData);
+        String retJsonString = resData.toJSONString();
         renderJSON(retJsonString);
     }
 
     public static void logout() throws Throwable {
-    	// 認証基盤にログアウト情報を連携する
-    	
+        // 認証基盤にログアウト情報を連携する
+        
     }
 
     // ~~~ Utils
