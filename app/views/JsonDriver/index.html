@@ -1,0 +1,26 @@
+#{extends 'main.html' /}
+#{set title:'JsonDriver' /}
+
+                <p>JSONデータのPOST実験</p>
+                <button id="testbutton" class="pure-button">TestButton</button>
+                <div id="area"></div>
+                <script type="text/javascript">
+                        (function($){
+                          $('#testbutton').click(function(){
+                                var jsondata = { //送りたいJSONデータ
+                                        "id": 1,
+                                        "text": "hello world"
+                                };
+                                $.ajax({
+                                          url:"getjsondata",//先ほどのActionを指定
+                                          type:'POST',
+                                          data:JSON.stringify(jsondata),//JSON.stringifyを忘れない
+                                          complete:function(result){
+                                                $('#area').append(result.responseText);
+                                          },
+                                          dataType:'json',
+                                          contentType:'text/json'
+                            });
+                          });
+                        })(jQuery);
+                </script>

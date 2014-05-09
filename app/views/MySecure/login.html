@@ -1,0 +1,53 @@
+#{extends 'MySecure/layout.html' /}
+
+            <button id="testbutton" class="pure-button">Post Auth TestButton</button>
+            <button id="testbutton2" class="pure-button">Post next view TestButton</button>
+            <div id="area"></div>
+                <script type="text/javascript">
+                        (function($){
+                          $('#testbutton').click(function(){
+                                var jsondata = {
+                                        "jsonrpc": "2.0", "method": "subtract", "params": {"pfmToken": "aaaaa"}, "id": 1
+                                };
+                                $.ajax({
+                                          url:"http://localhost:9000/mysecure/authenticate",
+                                          type:'POST',
+                                          data:JSON.stringify(jsondata),
+                                          complete:function(result){
+                                                $('#area').append(result.responseText);
+                                          },
+                                          dataType:'json',
+                                          headers: { 
+                                              "pfmToken":"bbb"
+                                          },
+                                          beforeSend: function(xhr) {
+                                            xhr.setRequestHeader('pfmToken', 'bbb');
+                                          },
+                                          contentType:'application/json'
+                            });
+                          });
+                        })(jQuery);
+                        (function($){
+                          $('#testbutton2').click(function(){
+                                var jsondata = {
+                                        "jsonrpc": "2.0", "method": "subtract", "params": {"pfmToken": "aaaaa"}, "id": 2
+                                };
+                                $.ajax({
+                                          url:"http://localhost:9000/Application/index",
+                                          type:'POST',
+                                          data:JSON.stringify(jsondata),
+                                          complete:function(result){
+                                                $('#area').append(result.responseText);
+                                          },
+                                          dataType:'json',
+                                          headers: { 
+                                              "pfmToken":"bbb"
+                                          },
+                                          beforeSend: function(xhr) {
+                                            xhr.setRequestHeader('pfmToken', 'bbb');
+                                          },
+                                          contentType:'application/json'
+                            });
+                          });
+                        })(jQuery);
+                </script>
