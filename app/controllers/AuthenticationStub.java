@@ -35,6 +35,12 @@ public class AuthenticationStub extends Controller {
         result.put("status", true);
         result.put("token", "test");
         JSONRPC2Response respData = new JSONRPC2Response(result, reqData.getID());
+
+        System.out.println("The request succeeded :");
+        System.out.println("\tresult : " + respData.getResult());
+        System.out.println("\tid     : " + respData.getID());
+        System.out.println("\ttoJSONString     : " + respData.toJSONString());
+        
         renderJSON(respData.toJSONString());
     }
 }
