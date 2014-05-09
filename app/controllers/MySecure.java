@@ -45,7 +45,7 @@ public class MySecure extends Controller {
                 // 存在する場合、認証基盤に問い合わせ
                 // localhost の場合、TimeOutExceptionでエラーとなってしまうため、別のサーバとしてPort9001で立ち上げ動くようにする。
                 String checkUrl = Play.configuration.getProperty("mysecure.check.url", "http://localhost:9001/AuthenticationStub/login");
-                respData = (JSONRPC2Response)Security.invoke("checkToken", checkUrl, reqData);
+                respData = (JSONRPC2Response)Security.invoke("authenticate", checkUrl, reqData);
             	JSONObject obj = (JSONObject)respData.getResult();
             	boolean status = ((Boolean)obj.get("status")).booleanValue();
                 if ( respData != null && respData.indicatesSuccess() && status ) {
