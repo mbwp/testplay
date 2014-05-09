@@ -1,5 +1,7 @@
 package controllers;
-
+/**
+ * portを9001とかで別サーバとして起動して確認するための認証基盤のスタブ
+ */
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
